@@ -1,123 +1,71 @@
----
-id: context
-title: Context
-sidebar_label: Context
----
-Request context module for appolo build with [appolo-context](https://github.com/shmoop207/appolo-context) and `async_hooks`.
-
-> new context will be create for every request
+Http Service module for [`appolo`](https://github.com/shmoop207/appolo) build with [axios](https://github.com/axios/axios)
 
 ## Installation
 
 ```javascript
-npm i @appolo/context
+npm i @appolo/http
 ```
+
+
+in config/modules/all.ts
 
 ## Options
 | key | Description | Type | Default
 | --- | --- | --- | --- |
-| `id` | id of context injector  | `string`|  `context`|
+| `id` | `httpService` injection id | `string`|  `httpService`|
 
-in config/modules/all.ts
+any option from `Request Config` can be added and will be added to all request.
 
 ```javascript
-import {ContextModule} from '@appolo/context';
+import {HttpModule} from '@appolo/http';
 
 export = async function (app: App) {
-   await app.module(ContextModule);
+   await app.module(new HttpModule({baseURL:"https://some-domain.com/api/",retry:2}));
 }
 ```
 
 ## Usage
-first define your context using the `@context` decorator
-```javascript
-import {context} from '@appolo/context';
-
-@context()
-export class MyContext {
-
-    @inject() env: any;
-
-    constructor(req, res) {
-
-    }
-
-    private _user: string;
-
-    public set user(value: string) {
-
-        this._user = value
-    }
-
-    public get user(): string {
-        return this._user
-    }
-}
-
-```
-For the example we will define a middleware to set the context data
-```javascript
-@define()
-@singleton()
-export class UserMiddleware extends Middleware {
-    @inject() context: MyContext;
-
-    async run(req, res, next) {
-        this.context.user = req.query.userName;
-        next()
-    }
-}
-
-```
-Now we can access the context from any class using `@inject context`
-> note that the context is uniq for every request and can not share data between requests
 
 ```javascript
-@define()
-@singleton()
-export class SomeManager {
-
-    @inject() context: MyContext ;
-
-    public async getName():Promise<string>{
-        return this.context.user;
-    }
-}
-
-```
-
-In the controller we will put the middleware and access the manager to get the context name
-```javascript
-@controller()
-export class ContextController extends Controller {
-
-    @inject() someManager: Manager;
-
-    @get("/test/context/")
-    @validation("userName", validator.string().required())
-    @middleware(UserMiddleware)
-    async test(req: IRequest, res: IResponse) {
-
-        let userName = await this.someManager.getName()
-
-        return {userName}
-    }
-}
-
-```
-
-You can also access the current context from `getContext` function
-
-```javascript
-import {getContext} from '@appolo/context';
+import {define, singleton,inject} from 'appolo'
+import {publisher} from "@appolo/http";
 
 @define()
 @singleton()
 export class SomeManager {
 
-    public async getName():Promise<string>{
-        return getContext().user;
+    @inject httpService:HttpService
+
+    async getUserId(): Promise<string> {
+
+        let result = await this.httpService.request<{userId:string}>({
+            url:"http://someurl"
+            method:"post"
+            timeout:1000
+            retry:3
+        })
+
+        return result.data.userId
     }
 }
-
 ```
+
+## Request Config
+| key | Description | Type | Default
+| --- | --- | --- | --- |
+| `url` | `request url | `string`|  ``|
+| `method` | is the request method to be used when making the request | `string` | `get` |
+| `baseURL` | `baseURL` will be prepended to `url` unless `url` is absolute | `string` | `` |
+| `headers` | custom headers  | `object` | `{}` |
+| `params` | are the URL parameters to be sent with the request  | `object` | `{}` |
+| `data` | the data to be sent as the request body  | `object` | `{}` |
+| `timeout` | specifies the number of milliseconds before the request times out  | `number` | `0` |
+| `withCredentials` | indicates whether or not cross-site Access-Control requests  | `boolean` | `false` |
+| `auth` | indicates that HTTP Basic auth should be used, and supplies credentials  | `object` | `{}` |
+| `responseType` | indicates the type of data that the server will respond with | `string` | `json` |
+| `responseEncoding` | indicates encoding to use for decoding responses | `string` | `utf8` |
+| `maxRedirects` |  defines the maximum number of redirects to follow in node.js | `number` | `5` |
+| `retry` | retry  times on requests that return a response (500, etc) before giving up | `number` | `0` |
+| `noResponseRetries` |  etry times on errors that don't return a response (ENOTFOUND, ETIMEDOUT, etc) | `number` | `0` |
+| `retryDelay` |  Milliseconds to delay at first | `number` | `100` |
+
