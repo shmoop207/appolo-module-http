@@ -1,6 +1,6 @@
 import {define, inject, singleton} from 'appolo';
 import {AxiosInstance, AxiosRequestConfig} from 'axios'
-import {IConfig, IOptions, IResponse} from "./IOptions";
+import {IConfig, IOptions, IHttpResponse} from "./IOptions";
 import {RetryConfig} from "retry-axios";
 
 
@@ -12,7 +12,7 @@ export class HttpService {
     @inject() private httpRetryProvider: AxiosInstance;
     @inject() private moduleOptions: IOptions;
 
-    public request<T>(options: IConfig): Promise<IResponse<T>> {
+    public request<T>(options: IConfig): Promise<IHttpResponse<T>> {
 
         let dto: AxiosRequestConfig & { raxConfig?: RetryConfig } = {
             ...options,
@@ -32,7 +32,7 @@ export class HttpService {
 
         let result = provider.request(dto);
 
-        return result as Promise<IResponse<T>>;
+        return result as Promise<IHttpResponse<T>>;
 
     }
 }

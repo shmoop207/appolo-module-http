@@ -32,7 +32,7 @@ export interface IConfig {
 }
 
 
-export interface IResponse<T = any> {
+export interface IHttpResponse<T = any> {
     data: T;
     status: number;
     statusText: string;
@@ -45,6 +45,6 @@ export interface ResponseError extends Error {
     config: IConfig;
     code?: string;
     request?: any;
-    response?: IResponse;
+    response?: IHttpResponse;
 }
 
