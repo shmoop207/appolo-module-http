@@ -1,6 +1,6 @@
 {
   "name": "@appolo/http",
-  "version": "0.0.3",
+  "version": "7.0.0",
   "description": "appolo http module",
   "keywords": [
     "appolo",
@@ -11,21 +11,21 @@
     "access": "public"
   },
   "dependencies": {
-    "appolo": "^6.0.59",
-    "axios": "^0.18.0",
-    "lodash": "^4.17.11",
-    "retry-axios": "^0.4.1"
+    "appolo": "^7.0.2",
+    "axios": "^0.19.2",
+    "lodash": "^4.17.15",
+    "retry-axios": "^2.1.2"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
-    "@types/chai": "^4.1.7",
-    "@types/lodash": "^4.14.119",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.18",
+    "@types/chai": "^4.2.11",
+    "@types/lodash": "^4.14.149",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.11.0",
     "chai": "^4.2.0",
-    "mocha": "^5.2.0",
-    "supertest": "^3.4.2",
-    "typescript": "^3.2.2"
+    "mocha": "^7.1.1",
+    "supertest": "^4.0.2",
+    "typescript": "^3.8.3"
   },
   "repository": {
     "type": "git",
