@@ -5,9 +5,20 @@ export interface IOptions extends IConfig, IModuleOptions {
 
 }
 
+export type Method =
+    | 'get' | 'GET'
+    | 'delete' | 'DELETE'
+    | 'head' | 'HEAD'
+    | 'options' | 'OPTIONS'
+    | 'post' | 'POST'
+    | 'put' | 'PUT'
+    | 'patch' | 'PATCH'
+    | 'link' | 'LINK'
+    | 'unlink' | 'UNLINK'
+
 export interface IConfig {
     url?: string;
-    method?: "get" | "post" | "put" | "patch" | "delete" | "head" | "options";
+    method?: Method;
     baseURL?: string;
     headers?: { [index: string]: any };
     params?: { [index: string]: any };
@@ -28,7 +39,8 @@ export interface IConfig {
     httpsAgent?: any;
     retry?: number;
     retryDelay?: number;
-    noResponseRetries?:number
+    currentRetryAttempt?: number,
+    fallbackUrls?: string[];
 }
 
 

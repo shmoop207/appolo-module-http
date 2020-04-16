@@ -8,7 +8,7 @@ describe("socket module Spec", function () {
     beforeEach(async () => {
         app = appolo_1.createApp({ root: __dirname, environment: "production", port: 8182 });
         await app.module(new __1.HttpModule({
-            retry: 2, retryDelay: 100, noResponseRetries: 2
+            retry: 2, retryDelay: 100,
         }));
         await app.launch();
     });
@@ -28,24 +28,52 @@ describe("socket module Spec", function () {
         let httpService = app.injector.get(__1.HttpService);
         try {
             let result = await httpService.request({
-                method: "get",
-                url: "https://jsonplaceholder.typicode.com/todo2s/1"
+                method: "get", timeout: 1000,
+                retry: 0,
+                url: "http://google.com/aaaa"
             });
+            result.status.should.not.be.eq(200);
         }
         catch (e) {
             e.response.status.should.be.eq(404);
+            e.config.currentRetryAttempt.should.be.eq(0);
         }
     });
     it('should throw error with retry', async () => {
         let httpService = app.injector.get(__1.HttpService);
         try {
             let result = await httpService.request({
-                method: "get",
-                url: "https://jsonplaceholder2.typicode.com/todos/1"
+                method: "get", retry: 2, timeout: 500,
+                url: "http://google.com/aaaa"
             });
+            result.status.should.not.be.eq(200);
         }
         catch (e) {
-            e.config.raxConfig.currentRetryAttempt.should.be.eq(2);
+            e.config.currentRetryAttempt.should.be.eq(2);
+        }
+    });
+    it('should get with fallback', async () => {
+        let httpService = app.injector.get(__1.HttpService);
+        let result = await httpService.request({
+            method: "get",
+            url: "http://google.com/aaaa",
+            fallbackUrls: ["http://google.com"],
+        });
+        result.status.should.be.eq(200);
+    });
+    it('should throw with fallback', async () => {
+        try {
+            let httpService = app.injector.get(__1.HttpService);
+            let result = await httpService.request({
+                method: "get", retry: 0,
+                url: "http://google.com/aaaa",
+                fallbackUrls: ["http://google.com/bbbb"],
+            });
+            result.status.should.not.be.eq(200);
+        }
+        catch (e) {
+            e.response.status.should.be.eq(404);
+            e.config.url.should.be.eq("http://google.com/bbbb");
         }
     });
 });

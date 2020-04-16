@@ -14,7 +14,7 @@ describe("socket module Spec", function () {
 
         await app.module(new HttpModule({
 
-            retry: 2, retryDelay: 100, noResponseRetries: 2
+            retry: 2, retryDelay: 100,
 
         }));
 
@@ -29,15 +29,15 @@ describe("socket module Spec", function () {
     it('should get json', async () => {
 
 
-            let httpService = app.injector.get<HttpService>(HttpService);
+        let httpService = app.injector.get<HttpService>(HttpService);
 
-            let result = await httpService.request<{id:number}>({
-                method: "get",
-                url: "https://jsonplaceholder.typicode.com/todos/1"
-            })
+        let result = await httpService.request<{ id: number }>({
+            method: "get",
+            url: "https://jsonplaceholder.typicode.com/todos/1"
+        })
 
-            result.status.should.be.eq(200);
-            result.data.id.should.be.eq(1);
+        result.status.should.be.eq(200);
+        result.data.id.should.be.eq(1);
 
     });
 
@@ -46,39 +46,81 @@ describe("socket module Spec", function () {
 
         let httpService = app.injector.get<HttpService>(HttpService);
 
-        try{
-            let result = await httpService.request<{id:number}>({
-                method: "get",
-                url: "https://jsonplaceholder.typicode.com/todo2s/1"
+        try {
+            let result = await httpService.request<{ id: number }>({
+                method: "get", timeout: 1000,
+                retry: 0,
+                url: "http://google.com/aaaa"
             })
 
-        }catch (e) {
+            result.status.should.not.be.eq(200);
+
+
+        } catch (e) {
             e.response.status.should.be.eq(404);
+            e.config.currentRetryAttempt.should.be.eq(0);
         }
-        
-        
+
 
     });
 
     it('should throw error with retry', async () => {
 
-
         let httpService = app.injector.get<HttpService>(HttpService);
 
-        try{
-            let result = await httpService.request<{id:number}>({
-                method: "get",
-                url: "https://jsonplaceholder2.typicode.com/todos/1"
+        try {
+            let result = await httpService.request<{ id: number }>({
+                method: "get", retry: 2, timeout: 500,
+                url: "http://google.com/aaaa"
             })
 
-        }catch (e) {
-            e.config.raxConfig.currentRetryAttempt.should.be.eq(2);
-        }
+            result.status.should.not.be.eq(200);
 
+
+        } catch (e) {
+            e.config.currentRetryAttempt.should.be.eq(2);
+        }
 
 
     });
 
+    it('should get with fallback', async () => {
+
+
+        let httpService = app.injector.get<HttpService>(HttpService);
+
+        let result = await httpService.request<{ id: number }>({
+            method: "get",
+            url: "http://google.com/aaaa",
+            fallbackUrls: ["http://google.com"],
+        })
+
+        result.status.should.be.eq(200)
+
+
+    });
+
+    it('should throw with fallback', async () => {
+
+        try {
+            let httpService = app.injector.get<HttpService>(HttpService);
+
+            let result = await httpService.request<{ id: number }>({
+                method: "get", retry: 0,
+                url: "http://google.com/aaaa",
+                fallbackUrls: ["http://google.com/bbbb"],
+            })
+
+            result.status.should.not.be.eq(200);
+
+        } catch (e) {
+            e.response.status.should.be.eq(404);
+            e.config.url.should.be.eq("http://google.com/bbbb")
+
+        }
+
+
+    });
 
 
 });

@@ -1,7 +1,6 @@
 import {define, inject, singleton} from 'appolo';
-import {AxiosInstance, AxiosRequestConfig} from 'axios'
+import {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
 import {IConfig, IOptions, IHttpResponse} from "./IOptions";
-import {RetryConfig} from "retry-axios";
 
 
 @define()
@@ -9,31 +8,52 @@ import {RetryConfig} from "retry-axios";
 export class HttpService {
 
     @inject() private httpProvider: AxiosInstance;
-    @inject() private httpRetryProvider: AxiosInstance;
     @inject() private moduleOptions: IOptions;
 
-    public request<T>(options: IConfig): Promise<IHttpResponse<T>> {
+    public async request<T>(options: IConfig): Promise<IHttpResponse<T>> {
 
-        let dto: AxiosRequestConfig & { raxConfig?: RetryConfig } = {
+        let dto: IConfig = {
             ...options,
+            currentRetryAttempt: options.currentRetryAttempt || 0,
+            retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry,
+            retryDelay: options.retryDelay || this.moduleOptions.retryDelay,
         };
 
-        let provider = this.httpProvider;
+        try {
+            let result = await this.httpProvider.request<T>(dto);
 
-        if (options.retry || this.moduleOptions.retry || this.moduleOptions.noResponseRetries || options.noResponseRetries) {
-            provider = this.httpRetryProvider;
-            dto.raxConfig = {
-                retry: options.retry || this.moduleOptions.retry || undefined,
-                retryDelay: options.retryDelay || this.moduleOptions.retryDelay || undefined,
-                noResponseRetries: options.noResponseRetries || this.moduleOptions.noResponseRetries || undefined,
-                instance: provider
-            };
+            return result;
+
+        } catch (e) {
+            let err: AxiosError = e, config = err.config;
+
+            if (config.retry > 0 && config.currentRetryAttempt < config.retry) {
+
+                config.currentRetryAttempt++;
+
+                let backoff = config.retryDelay * config.currentRetryAttempt;
+
+                await new Promise(resolve => setTimeout(resolve, backoff))
+
+                return this.request(config);
+            }
+
+            if (config.fallbackUrls && config.fallbackUrls.length) {
+                let url = config.fallbackUrls.shift();
+
+                config.url = url;
+
+                return this.request(config);
+            }
+
+            throw e;
         }
 
-        let result = provider.request(dto);
+    }
 
-        return result as Promise<IHttpResponse<T>>;
-
+    public requestAndForget<T>(options: IConfig): void {
+        this.request(options).catch(() => {
+        })
     }
 }
 

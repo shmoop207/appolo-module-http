@@ -3,28 +3,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const appolo_1 = require("appolo");
 let HttpService = class HttpService {
-    request(options) {
-        let dto = Object.assign({}, options);
-        let provider = this.httpProvider;
-        if (options.retry || this.moduleOptions.retry || this.moduleOptions.noResponseRetries || options.noResponseRetries) {
-            provider = this.httpRetryProvider;
-            dto.raxConfig = {
-                retry: options.retry || this.moduleOptions.retry || undefined,
-                retryDelay: options.retryDelay || this.moduleOptions.retryDelay || undefined,
-                noResponseRetries: options.noResponseRetries || this.moduleOptions.noResponseRetries || undefined,
-                instance: provider
-            };
+    async request(options) {
+        let dto = Object.assign(Object.assign({}, options), { currentRetryAttempt: options.currentRetryAttempt || 0, retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay });
+        try {
+            let result = await this.httpProvider.request(dto);
+            return result;
         }
-        let result = provider.request(dto);
-        return result;
+        catch (e) {
+            let err = e, config = err.config;
+            if (config.retry > 0 && config.currentRetryAttempt < config.retry) {
+                config.currentRetryAttempt++;
+                let backoff = config.retryDelay * config.currentRetryAttempt;
+                await new Promise(resolve => setTimeout(resolve, backoff));
+                return this.request(config);
+            }
+            if (config.fallbackUrls && config.fallbackUrls.length) {
+                let url = config.fallbackUrls.shift();
+                config.url = url;
+                return this.request(config);
+            }
+            throw e;
+        }
+    }
+    requestAndForget(options) {
+        this.request(options).catch(() => {
+        });
     }
 };
 tslib_1.__decorate([
     appolo_1.inject()
 ], HttpService.prototype, "httpProvider", void 0);
-tslib_1.__decorate([
-    appolo_1.inject()
-], HttpService.prototype, "httpRetryProvider", void 0);
 tslib_1.__decorate([
     appolo_1.inject()
 ], HttpService.prototype, "moduleOptions", void 0);

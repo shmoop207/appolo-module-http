@@ -5,3 +5,11 @@ import {IConfig, IOptions, IHttpResponse, ResponseError} from "./module/src/IOpt
 
 export {HttpModule, HttpService, IOptions, ResponseError, IConfig, IHttpResponse}
 
+declare module 'axios' {
+    interface AxiosRequestConfig {
+        retry?: number;
+        retryDelay?: number;
+        currentRetryAttempt?: number,
+        fallbackUrls?: string[];
+    }
+}

@@ -12,6 +12,10 @@ export class HttpModule extends Module<IOptions> {
         super(opts);
     }
 
+    public static for(opts?: IOptions): HttpModule {
+        return new HttpModule(opts);
+    }
+
     public get exports() {
         return [{id: this.moduleOptions.id, type: HttpService}];
     }

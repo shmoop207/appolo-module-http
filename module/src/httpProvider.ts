@@ -1,7 +1,6 @@
 import {define, factory, IFactory, inject, singleton} from 'appolo';
 import axios, {AxiosInstance} from 'axios'
 import {IOptions} from "./IOptions";
-import rax = require('retry-axios');
 
 @define()
 @singleton()
