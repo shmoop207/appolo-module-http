@@ -53,10 +53,5 @@ export interface IHttpResponse<T = any> {
     request?: any;
 }
 
-export interface ResponseError extends Error {
-    config: IConfig;
-    code?: string;
-    request?: any;
-    response?: IHttpResponse;
-}
+
 

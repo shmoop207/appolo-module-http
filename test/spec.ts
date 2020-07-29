@@ -116,7 +116,7 @@ describe("socket module Spec", function () {
         } catch (e) {
             e.response.status.should.be.eq(404);
             e.config.url.should.be.eq("http://google.com/bbbb")
-
+            e.statusCode.should.be.eq(404);
         }
 
 

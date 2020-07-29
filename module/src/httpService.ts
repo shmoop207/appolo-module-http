@@ -1,6 +1,7 @@
 import {define, inject, singleton} from 'appolo';
 import {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
 import {IConfig, IOptions, IHttpResponse} from "./IOptions";
+import {ResponseError} from "./responseError";
 
 
 @define()
@@ -46,7 +47,7 @@ export class HttpService {
                 return this.request(config);
             }
 
-            throw e;
+            throw new ResponseError(err.message,err.config,err.code,err.request,err.response);
         }
 
     }

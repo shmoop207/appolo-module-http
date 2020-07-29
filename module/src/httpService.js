@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const appolo_1 = require("appolo");
+const responseError_1 = require("./responseError");
 let HttpService = class HttpService {
     async request(options) {
         let dto = Object.assign(Object.assign({}, options), { currentRetryAttempt: options.currentRetryAttempt || 0, retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay });
@@ -22,7 +23,7 @@ let HttpService = class HttpService {
                 config.url = url;
                 return this.request(config);
             }
-            throw e;
+            throw new responseError_1.ResponseError(err.message, err.config, err.code, err.request, err.response);
         }
     }
     requestAndForget(options) {
