@@ -39,7 +39,6 @@ export interface IConfig {
     httpsAgent?: any;
     retry?: number;
     retryDelay?: number;
-    currentRetryAttempt?: number,
     fallbackUrls?: string[];
 }
 
