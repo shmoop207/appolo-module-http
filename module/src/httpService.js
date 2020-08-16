@@ -23,7 +23,7 @@ let HttpService = class HttpService {
         }
         catch (e) {
             let err = e, config = err.config;
-            if (options.retryStatus && err.response && options.retryStatus < err.response.status) {
+            if (options.retryStatus && err.response && err.response.status < options.retryStatus) {
                 throw new responseError_1.ResponseError(err);
             }
             if (config.fallbackUrls && config.fallbackUrls.length && options.fallbackUrlIndex < config.fallbackUrls.length) {

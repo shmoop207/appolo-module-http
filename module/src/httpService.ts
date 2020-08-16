@@ -44,7 +44,7 @@ export class HttpService {
         } catch (e) {
             let err: AxiosError = e, config = err.config;
 
-            if (options.retryStatus && err.response && options.retryStatus < err.response.status) {
+            if (options.retryStatus && err.response &&   err.response.status < options.retryStatus) {
                 throw new ResponseError(err);
             }
 
