@@ -40,6 +40,7 @@ export interface IConfig {
     retry?: number;
     retryDelay?: number;
     fallbackUrls?: string[];
+    retryStatus?: number
 }
 
 

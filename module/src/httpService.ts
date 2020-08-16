@@ -2,6 +2,7 @@ import {define, inject, singleton} from 'appolo';
 import {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
 import {IConfig, IOptions, IHttpResponse} from "./IOptions";
 import {ResponseError} from "./responseError";
+import {URL} from "url";
 
 
 @define()
@@ -21,6 +22,15 @@ export class HttpService {
             fallbackUrlIndex: 0
         };
 
+        if (options.baseURL) {
+            options.url = new URL( options.url,options.baseURL).toString();
+            if (options.fallbackUrls) {
+                options.fallbackUrls = options.fallbackUrls.map(baseURL =>new URL( options.url,baseURL).toString())
+            }
+
+            delete options.baseURL;
+        }
+
         return this._request<T>(dto);
 
     }
@@ -34,6 +44,9 @@ export class HttpService {
         } catch (e) {
             let err: AxiosError = e, config = err.config;
 
+            if (options.retryStatus && err.response && options.retryStatus < err.response.status) {
+                throw new ResponseError(err);
+            }
 
             if (config.fallbackUrls && config.fallbackUrls.length && options.fallbackUrlIndex < config.fallbackUrls.length) {
                 let url = config.fallbackUrls[options.fallbackUrlIndex]
@@ -60,7 +73,7 @@ export class HttpService {
             }
 
 
-            throw new ResponseError(err.message, err.config, err.code, err.request, err.response);
+            throw new ResponseError(err);
         }
     }
 

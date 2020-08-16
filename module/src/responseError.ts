@@ -1,18 +1,26 @@
 import {IConfig, IHttpResponse} from "./IOptions";
 import {ClientRequest} from "http";
+import {AxiosError} from "axios";
 
 export class ResponseError extends Error {
 
-    constructor(message: string, private _config: IConfig,
-                private _code: string,
-                private _request: ClientRequest,
-                private _response: IHttpResponse) {
+    private readonly _code: string;
+    private readonly _config: IConfig;
+    private readonly _response: IHttpResponse;
+    private readonly _request: ClientRequest;
 
-        super(message);
+    constructor(err: AxiosError) {
+
+        super(err.message);
+
+        this._code = err.code;
+        this._config = err.config;
+        this._response = err.response;
+        this._request = err.request;
 
         this.name = "ResponseError";
 
-        Object.setPrototypeOf(this,  new.target.prototype);
+        Object.setPrototypeOf(this, new.target.prototype);
     }
 
     public get code(): string {
