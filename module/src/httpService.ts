@@ -23,12 +23,12 @@ export class HttpService {
         };
 
         if (options.baseURL) {
-            options.url = new URL( options.url,options.baseURL).toString();
+            dto.url = new URL( options.url,options.baseURL).toString();
             if (options.fallbackUrls) {
-                options.fallbackUrls = options.fallbackUrls.map(baseURL =>new URL( options.url,baseURL).toString())
+                dto.fallbackUrls = options.fallbackUrls.map(baseURL =>new URL( options.url,baseURL).toString())
             }
 
-            delete options.baseURL;
+            delete dto.baseURL;
         }
 
         return this._request<T>(dto);

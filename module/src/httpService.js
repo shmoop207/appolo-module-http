@@ -8,11 +8,11 @@ let HttpService = class HttpService {
     request(options) {
         let dto = Object.assign(Object.assign({}, options), { retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay, currentRetryAttempt: 0, fallbackUrlIndex: 0 });
         if (options.baseURL) {
-            options.url = new url_1.URL(options.url, options.baseURL).toString();
+            dto.url = new url_1.URL(options.url, options.baseURL).toString();
             if (options.fallbackUrls) {
-                options.fallbackUrls = options.fallbackUrls.map(baseURL => new url_1.URL(options.url, baseURL).toString());
+                dto.fallbackUrls = options.fallbackUrls.map(baseURL => new url_1.URL(options.url, baseURL).toString());
             }
-            delete options.baseURL;
+            delete dto.baseURL;
         }
         return this._request(dto);
     }
