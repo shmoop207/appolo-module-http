@@ -9,12 +9,12 @@ export class ResponseError extends Error {
     private readonly _response: IHttpResponse;
     private readonly _request: ClientRequest;
 
-    constructor(err: AxiosError) {
+    constructor(err: AxiosError,config:IConfig) {
 
         super(err.message);
 
         this._code = err.code;
-        this._config = err.config;
+        this._config = err.config || config;
         this._response = err.response;
         this._request = err.request;
 

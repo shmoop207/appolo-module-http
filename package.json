@@ -1,6 +1,6 @@
 {
   "name": "@appolo/http",
-  "version": "7.0.7",
+  "version": "7.0.8",
   "description": "appolo http module",
   "keywords": [
     "appolo",
@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "appolo": "^7.0.2",
-    "axios": "^0.19.2"
+    "axios": "^0.20.0"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",

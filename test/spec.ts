@@ -123,5 +123,26 @@ describe("socket module Spec", function () {
     });
 
 
+    it('should throw with hard timeout ', async () => {
+
+        try {
+            let httpService = app.injector.get<HttpService>(HttpService);
+
+            let result = await httpService.request<{ id: number }>({
+                method: "get",hardTimeout:1,
+                url: "http://google.com",
+            })
+
+            result.status.should.not.be.eq(200);
+
+        } catch (e) {
+            e.message.should.be.eq("timeout of 1ms exceeded")
+            e.config.url.should.be.eq("http://google.com")
+            e.statusCode.should.be.eq(0);
+        }
+
+
+    });
+
 });
 

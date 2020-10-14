@@ -1,8 +1,10 @@
 import {define, inject, singleton} from 'appolo';
-import {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
+import axios, {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
 import {IConfig, IOptions, IHttpResponse} from "./IOptions";
 import {ResponseError} from "./responseError";
 import {URL} from "url";
+import {Util} from "./util";
+import Timer = NodeJS.Timer;
 
 
 @define()
@@ -19,37 +21,62 @@ export class HttpService {
             retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry,
             retryDelay: options.retryDelay || this.moduleOptions.retryDelay,
             currentRetryAttempt: 0,
-            fallbackUrlIndex: 0
+            fallbackUrlIndex: 0,
+            hardTimeoutInterval:null,
         };
 
         if (options.baseURL) {
-            dto.url = new URL( options.url,options.baseURL).toString();
+
+            dto.url = Util.combineURLs(options.baseURL, options.url)
+
             if (options.fallbackUrls) {
-                dto.fallbackUrls = options.fallbackUrls.map(baseURL =>new URL( options.url,baseURL).toString())
+                dto.fallbackUrls = options.fallbackUrls.map(baseURL => Util.combineURLs(baseURL, options.url))
             }
 
             delete dto.baseURL;
         }
 
+
+
         return this._request<T>(dto);
 
     }
 
-    private async _request<T>(options: IConfig & { currentRetryAttempt?: number, fallbackUrlIndex?: number }): Promise<IHttpResponse<T>> {
+    private async _request<T>(options: IConfig & {hardTimeoutInterval?:Timer, currentRetryAttempt?: number, fallbackUrlIndex?: number }): Promise<IHttpResponse<T>> {
         try {
+
+            if (options.hardTimeout) {
+                let cancelSource = axios.CancelToken.source();
+
+                options.cancelToken = cancelSource.token;
+
+                options.hardTimeoutInterval = setTimeout(() => {
+                    cancelSource.cancel(`timeout of ${options.hardTimeout}ms exceeded`)
+                }, options.hardTimeout);
+            }
+
             let result = await this.httpProvider.request<T>(options);
+
+            if(options.hardTimeoutInterval){
+                clearTimeout(options.hardTimeoutInterval);
+            }
+
 
             return result;
 
         } catch (e) {
-            let err: AxiosError = e, config = err.config;
+            let err: AxiosError = e;
 
-            if (options.retryStatus && err.response &&   err.response.status < options.retryStatus) {
-                throw new ResponseError(err);
+            if(options.hardTimeoutInterval){
+                clearTimeout(options.hardTimeoutInterval);
             }
 
-            if (config.fallbackUrls && config.fallbackUrls.length && options.fallbackUrlIndex < config.fallbackUrls.length) {
-                let url = config.fallbackUrls[options.fallbackUrlIndex]
+            if (options.retryStatus && err.response && err.response.status < options.retryStatus) {
+                throw new ResponseError(err,options);
+            }
+
+            if ( options.fallbackUrls && options.fallbackUrls.length && options.fallbackUrlIndex < options.fallbackUrls.length) {
+                let url = options.fallbackUrls[options.fallbackUrlIndex]
 
                 options.url = url;
                 options.fallbackUrlIndex++;
@@ -61,11 +88,11 @@ export class HttpService {
             }
 
 
-            if (config.retry > 0 && options.currentRetryAttempt < config.retry) {
+            if (options.retry > 0 && options.currentRetryAttempt < options.retry) {
 
                 options.currentRetryAttempt++;
 
-                let backoff = config.retryDelay * options.currentRetryAttempt;
+                let backoff = options.retryDelay * options.currentRetryAttempt;
 
                 await new Promise(resolve => setTimeout(resolve, backoff))
 
@@ -73,8 +100,9 @@ export class HttpService {
             }
 
 
-            throw new ResponseError(err);
+            throw new ResponseError(err,options);
         }
+
     }
 
     public requestAndForget<T>(options: IConfig): void {

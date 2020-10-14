@@ -1,4 +1,5 @@
 import {IModuleOptions} from 'appolo';
+import {CancelToken} from "axios";
 
 export interface IOptions extends IConfig, IModuleOptions {
     id?: string;
@@ -24,6 +25,7 @@ export interface IConfig {
     params?: { [index: string]: any };
     data?: { [index: string]: any };
     timeout?: number;
+    hardTimeout?: number;
     withCredentials?: boolean;
     auth?: {
         username: string;
@@ -41,6 +43,7 @@ export interface IConfig {
     retryDelay?: number;
     fallbackUrls?: string[];
     retryStatus?: number
+    cancelToken?: CancelToken;
 }
 
 
