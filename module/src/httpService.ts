@@ -44,14 +44,6 @@ export class HttpService {
 
     private async _request<T>(options: IConfig & { currentRetryAttempt?: number, fallbackUrlIndex?: number }): Promise<IHttpResponse<T>> {
         try {
-
-            if (options.hardTimeout) {
-                let cancelSource = axios.CancelToken.source();
-
-                options.cancelToken = cancelSource.token;
-
-            }
-
             let promise =  this.httpProvider.request<T>(options);
 
             let result = await (options.hardTimeout ? Promises.promiseTimeout(promise,options.hardTimeout)  : promise)  ;
