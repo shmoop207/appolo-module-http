@@ -16,6 +16,7 @@ export type Method =
     | 'patch' | 'PATCH'
     | 'link' | 'LINK'
     | 'unlink' | 'UNLINK'
+    | 'purge' | 'PURGE'
 
 export interface IConfig {
     url?: string;

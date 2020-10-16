@@ -4,6 +4,7 @@ const tslib_1 = require("tslib");
 const appolo_1 = require("appolo");
 const axios_1 = require("axios");
 const responseError_1 = require("./responseError");
+const appolo_utils_1 = require("appolo-utils");
 const util_1 = require("./util");
 let HttpService = class HttpService {
     request(options) {
@@ -22,20 +23,15 @@ let HttpService = class HttpService {
             if (options.hardTimeout) {
                 let cancelSource = axios_1.default.CancelToken.source();
                 options.cancelToken = cancelSource.token;
-                options.hardTimeoutInterval = setTimeout(() => {
-                    cancelSource.cancel(`timeout of ${options.hardTimeout}ms exceeded`);
-                }, options.hardTimeout);
             }
-            let result = await this.httpProvider.request(options);
-            if (options.hardTimeoutInterval) {
-                clearTimeout(options.hardTimeoutInterval);
-            }
+            let promise = this.httpProvider.request(options);
+            let result = await (options.hardTimeout ? appolo_utils_1.Promises.promiseTimeout(promise, options.hardTimeout) : promise);
             return result;
         }
         catch (e) {
             let err = e;
-            if (options.hardTimeoutInterval) {
-                clearTimeout(options.hardTimeoutInterval);
+            if (e.message == "promise timeout") {
+                e.message = `timeout of ${options.hardTimeout}ms exceeded`;
             }
             if (options.retryStatus && err.response && err.response.status < options.retryStatus) {
                 throw new responseError_1.ResponseError(err, options);

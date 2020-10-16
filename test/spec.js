@@ -81,7 +81,8 @@ describe("socket module Spec", function () {
         try {
             let httpService = app.injector.get(__1.HttpService);
             let result = await httpService.request({
-                method: "get", hardTimeout: 1,
+                method: "get",
+                hardTimeout: 1,
                 url: "http://google.com",
             });
             result.status.should.not.be.eq(200);

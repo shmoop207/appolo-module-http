@@ -2,9 +2,9 @@ import {define, inject, singleton} from 'appolo';
 import axios, {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
 import {IConfig, IOptions, IHttpResponse} from "./IOptions";
 import {ResponseError} from "./responseError";
-import {URL} from "url";
+
+import {Promises} from "appolo-utils";
 import {Util} from "./util";
-import Timer = NodeJS.Timer;
 
 
 @define()
@@ -42,7 +42,7 @@ export class HttpService {
 
     }
 
-    private async _request<T>(options: IConfig & {hardTimeoutInterval?:Timer, currentRetryAttempt?: number, fallbackUrlIndex?: number }): Promise<IHttpResponse<T>> {
+    private async _request<T>(options: IConfig & { currentRetryAttempt?: number, fallbackUrlIndex?: number }): Promise<IHttpResponse<T>> {
         try {
 
             if (options.hardTimeout) {
@@ -50,16 +50,11 @@ export class HttpService {
 
                 options.cancelToken = cancelSource.token;
 
-                options.hardTimeoutInterval = setTimeout(() => {
-                    cancelSource.cancel(`timeout of ${options.hardTimeout}ms exceeded`)
-                }, options.hardTimeout);
             }
 
-            let result = await this.httpProvider.request<T>(options);
+            let promise =  this.httpProvider.request<T>(options);
 
-            if(options.hardTimeoutInterval){
-                clearTimeout(options.hardTimeoutInterval);
-            }
+            let result = await (options.hardTimeout ? Promises.promiseTimeout(promise,options.hardTimeout)  : promise)  ;
 
 
             return result;
@@ -67,9 +62,9 @@ export class HttpService {
         } catch (e) {
             let err: AxiosError = e;
 
-            if(options.hardTimeoutInterval){
-                clearTimeout(options.hardTimeoutInterval);
-            }
+             if(e.message =="promise timeout"){
+                 e.message = `timeout of ${options.hardTimeout}ms exceeded`;
+             }
 
             if (options.retryStatus && err.response && err.response.status < options.retryStatus) {
                 throw new ResponseError(err,options);
