@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.HttpService = void 0;
 const tslib_1 = require("tslib");
-const appolo_1 = require("appolo");
+const inject_1 = require("@appolo/inject");
 const responseError_1 = require("./responseError");
-const appolo_utils_1 = require("appolo-utils");
+const utils_1 = require("@appolo/utils");
 const util_1 = require("./util");
 let HttpService = class HttpService {
     request(options) {
@@ -20,7 +21,7 @@ let HttpService = class HttpService {
     async _request(options) {
         try {
             let promise = this.httpProvider.request(options);
-            let result = await (options.hardTimeout ? appolo_utils_1.Promises.promiseTimeout(promise, options.hardTimeout) : promise);
+            let result = await (options.hardTimeout ? utils_1.Promises.promiseTimeout(promise, options.hardTimeout) : promise);
             return result;
         }
         catch (e) {
@@ -55,14 +56,14 @@ let HttpService = class HttpService {
     }
 };
 tslib_1.__decorate([
-    appolo_1.inject()
+    inject_1.inject()
 ], HttpService.prototype, "httpProvider", void 0);
 tslib_1.__decorate([
-    appolo_1.inject()
+    inject_1.inject()
 ], HttpService.prototype, "moduleOptions", void 0);
 HttpService = tslib_1.__decorate([
-    appolo_1.define(),
-    appolo_1.singleton()
+    inject_1.define(),
+    inject_1.singleton()
 ], HttpService);
 exports.HttpService = HttpService;
 //# sourceMappingURL=httpService.js.map

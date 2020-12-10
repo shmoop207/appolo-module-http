@@ -1,9 +1,9 @@
-import {define, inject, singleton} from 'appolo';
+import {define, inject, singleton} from '@appolo/inject';
 import axios, {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
 import {IConfig, IOptions, IHttpResponse} from "./IOptions";
 import {ResponseError} from "./responseError";
 
-import {Promises} from "appolo-utils";
+import {Promises} from "@appolo/utils";
 import {Util} from "./util";
 
 

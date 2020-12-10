@@ -1,4 +1,4 @@
-import {define, factory, IFactory, inject, singleton} from 'appolo';
+import {define, factory, IFactory, inject, singleton} from '@appolo/inject';
 import axios, {AxiosInstance} from 'axios'
 import {IOptions} from "./IOptions";
 

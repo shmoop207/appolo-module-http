@@ -1,7 +1,6 @@
-import {IModuleOptions} from 'appolo';
 import {CancelToken} from "axios";
 
-export interface IOptions extends IConfig, IModuleOptions {
+export interface IOptions extends IConfig {
     id?: string;
 
 }
