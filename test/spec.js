@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = require("@appolo/core");
+const engine_1 = require("@appolo/engine");
 const __1 = require("../");
 let should = require('chai').should();
 describe("socket module Spec", function () {
     let app;
     beforeEach(async () => {
-        app = core_1.createApp({ root: __dirname, environment: "production", port: 8182 });
+        app = engine_1.createApp({ root: __dirname, environment: "production" });
         await app.module.use(__1.HttpModule.for({
             retry: 2, retryDelay: 100,
         }));

@@ -1,4 +1,4 @@
-import {App, createApp} from '@appolo/core'
+import {App, createApp} from '@appolo/engine'
 import {HttpModule, HttpService, ResponseError} from '../'
 
 let should = require('chai').should();
@@ -10,7 +10,7 @@ describe("socket module Spec", function () {
 
     beforeEach(async () => {
 
-        app = createApp({root: __dirname, environment: "production", port: 8182});
+        app = createApp({root: __dirname, environment: "production"});
 
         await app.module.use(HttpModule.for({
 
