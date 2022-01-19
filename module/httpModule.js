@@ -18,8 +18,8 @@ let HttpModule = HttpModule_1 = class HttpModule extends engine_1.Module {
         return [{ id: this.moduleOptions.id, type: index_1.HttpService }];
     }
 };
-HttpModule = HttpModule_1 = tslib_1.__decorate([
-    engine_1.module()
+HttpModule = HttpModule_1 = (0, tslib_1.__decorate)([
+    (0, engine_1.module)()
 ], HttpModule);
 exports.HttpModule = HttpModule;
 //# sourceMappingURL=httpModule.js.map

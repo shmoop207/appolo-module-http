@@ -55,15 +55,15 @@ let HttpService = class HttpService {
         });
     }
 };
-tslib_1.__decorate([
-    inject_1.inject()
+(0, tslib_1.__decorate)([
+    (0, inject_1.inject)()
 ], HttpService.prototype, "httpProvider", void 0);
-tslib_1.__decorate([
-    inject_1.inject()
+(0, tslib_1.__decorate)([
+    (0, inject_1.inject)()
 ], HttpService.prototype, "moduleOptions", void 0);
-HttpService = tslib_1.__decorate([
-    inject_1.define(),
-    inject_1.singleton()
+HttpService = (0, tslib_1.__decorate)([
+    (0, inject_1.define)(),
+    (0, inject_1.singleton)()
 ], HttpService);
 exports.HttpService = HttpService;
 //# sourceMappingURL=httpService.js.map

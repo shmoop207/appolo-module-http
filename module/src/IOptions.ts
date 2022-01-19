@@ -44,6 +44,7 @@ export interface IConfig {
     fallbackUrls?: string[];
     retryStatus?: number
     cancelToken?: CancelToken;
+    signal?: AbortSignal;
 }
 
 

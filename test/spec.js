@@ -6,7 +6,7 @@ let should = require('chai').should();
 describe("socket module Spec", function () {
     let app;
     beforeEach(async () => {
-        app = engine_1.createApp({ root: __dirname, environment: "production" });
+        app = (0, engine_1.createApp)({ root: __dirname, environment: "production" });
         await app.module.use(__1.HttpModule.for({
             retry: 2, retryDelay: 100,
         }));

@@ -10,13 +10,13 @@ let HttpProvider = class HttpProvider {
         return instance;
     }
 };
-tslib_1.__decorate([
-    inject_1.inject()
+(0, tslib_1.__decorate)([
+    (0, inject_1.inject)()
 ], HttpProvider.prototype, "moduleOptions", void 0);
-HttpProvider = tslib_1.__decorate([
-    inject_1.define(),
-    inject_1.singleton(),
-    inject_1.factory()
+HttpProvider = (0, tslib_1.__decorate)([
+    (0, inject_1.define)(),
+    (0, inject_1.singleton)(),
+    (0, inject_1.factory)()
 ], HttpProvider);
 exports.HttpProvider = HttpProvider;
 //# sourceMappingURL=httpProvider.js.map
