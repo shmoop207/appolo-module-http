@@ -93,5 +93,25 @@ describe("socket module Spec", function () {
             e.statusCode.should.be.eq(0);
         }
     });
+    it('should get gzip ', async () => {
+        try {
+            let httpService = app.injector.get(__1.HttpService);
+            let result = await httpService.request({
+                method: "post",
+                compressGzip: true,
+                compressGzipMinSize: 1,
+                url: "http://google.com",
+                data: {
+                    "test": { "test": 1 }
+                }
+            });
+            result.status.should.be.eq(200);
+        }
+        catch (e) {
+            e.config.headers["Content-Type"].should.be.eq("application/json");
+            e.config.headers["Content-Encoding"].should.be.eq("gzip");
+            e.config.headers["Content-Length"].should.be.eq("33");
+        }
+    });
 });
 //# sourceMappingURL=spec.js.map

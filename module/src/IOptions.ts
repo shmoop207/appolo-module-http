@@ -23,7 +23,7 @@ export interface IConfig {
     baseURL?: string;
     headers?: { [index: string]: any };
     params?: { [index: string]: any };
-    data?: { [index: string]: any };
+    data?: { [index: string]: any } | string | Buffer;
     timeout?: number;
     hardTimeout?: number;
     withCredentials?: boolean;
@@ -45,6 +45,9 @@ export interface IConfig {
     retryStatus?: number
     cancelToken?: CancelToken;
     signal?: AbortSignal;
+    decompress?: boolean
+    compressGzip?: boolean
+    compressGzipMinSize?: number
 }
 
 
@@ -57,5 +60,8 @@ export interface IHttpResponse<T = any> {
     request?: any;
 }
 
-
+export interface IConfigInner extends IConfig {
+    currentRetryAttempt?: number,
+    fallbackUrlIndex?: number
+}
 

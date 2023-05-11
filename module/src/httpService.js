@@ -6,9 +6,11 @@ const inject_1 = require("@appolo/inject");
 const responseError_1 = require("./responseError");
 const utils_1 = require("@appolo/utils");
 const util_1 = require("./util");
+const zlib_1 = require("zlib");
 let HttpService = class HttpService {
-    request(options) {
-        let dto = Object.assign(Object.assign({}, options), { retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay, currentRetryAttempt: 0, fallbackUrlIndex: 0, hardTimeoutInterval: null });
+    async request(options) {
+        let dto = Object.assign(Object.assign({}, options), { retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay, currentRetryAttempt: 0, fallbackUrlIndex: 0, headers: options.headers || {} });
+        await this._handleGzip(dto);
         if (options.baseURL) {
             dto.url = util_1.Util.combineURLs(options.baseURL, options.url);
             if (options.fallbackUrls) {
@@ -17,6 +19,24 @@ let HttpService = class HttpService {
             delete dto.baseURL;
         }
         return this._request(dto);
+    }
+    async _handleGzip(options) {
+        if (!options.compressGzip) {
+            return;
+        }
+        let data;
+        if (utils_1.Strings.isString(options.data) || Buffer.isBuffer(options.data)) {
+            data = options.data;
+        }
+        else {
+            data = JSON.stringify(options.data);
+            options.headers['content-type'] = 'application/json';
+        }
+        if (data.length < (options.compressGzipMinSize || 1024)) {
+            return;
+        }
+        options.headers['Content-Encoding'] = 'gzip';
+        options.data = await utils_1.Promises.fromCallback(c => (0, zlib_1.gzip)(data, c));
     }
     async _request(options) {
         try {
@@ -55,13 +75,13 @@ let HttpService = class HttpService {
         });
     }
 };
-(0, tslib_1.__decorate)([
+tslib_1.__decorate([
     (0, inject_1.inject)()
 ], HttpService.prototype, "httpProvider", void 0);
-(0, tslib_1.__decorate)([
+tslib_1.__decorate([
     (0, inject_1.inject)()
 ], HttpService.prototype, "moduleOptions", void 0);
-HttpService = (0, tslib_1.__decorate)([
+HttpService = tslib_1.__decorate([
     (0, inject_1.define)(),
     (0, inject_1.singleton)()
 ], HttpService);
