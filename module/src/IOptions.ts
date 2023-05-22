@@ -66,6 +66,7 @@ export interface IHttpResponse<T = any> {
 
 export interface IConfigInner extends IConfig {
     currentRetryAttempt?: number,
-    fallbackUrlIndex?: number
+    fallbackUrlIndex?: number,
+    didCheckAuth?: boolean,
 }
 

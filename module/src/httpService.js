@@ -51,7 +51,8 @@ let HttpService = class HttpService {
         }
         catch (e) {
             let err = e;
-            if (options.authDigest && err.response && err.response.status == 401 && ((_a = err.response.headers['www-authenticate']) === null || _a === void 0 ? void 0 : _a.includes("nonce"))) {
+            if (options.authDigest && !options.didCheckAuth && err.response && err.response.status == 401 && ((_a = err.response.headers['www-authenticate']) === null || _a === void 0 ? void 0 : _a.includes("nonce"))) {
+                options.didCheckAuth = true;
                 const authorization = this._handleDigestAuth(options, err.response.headers['www-authenticate']);
                 if (options.headers) {
                     options.headers['authorization'] = authorization;
@@ -92,7 +93,8 @@ let HttpService = class HttpService {
     _handleDigestAuth(options, authHeader) {
         var _a;
         const authDetails = authHeader.split(',').map((v) => v.split('='));
-        const nonceCount = '000000008';
+        ++this.count;
+        const nonceCount = ('00000000' + this.count).slice(-8);
         const cnonce = crypto.randomBytes(24).toString('hex');
         const realm = authDetails.find((el) => el[0].toLowerCase().indexOf("realm") > -1)[1].replace(/"/g, '');
         const nonce = authDetails.find((el) => el[0].toLowerCase().indexOf("nonce") > -1)[1].replace(/"/g, '');
