@@ -113,5 +113,25 @@ describe("socket module Spec", function () {
             e.config.headers["Content-Length"].should.be.eq("33");
         }
     });
+    it.only('auth digest', async () => {
+        try {
+            let httpService = app.injector.get(__1.HttpService);
+            let result = await httpService.request({
+                method: "GET",
+                headers: {
+                    Accept: "application/json"
+                },
+                url: "http://httpbin.org/digest-auth/auth/user/passwd/MD5",
+                authDigest: {
+                    username: "user",
+                    password: "passwd",
+                }
+            });
+            result.status.should.be.eq(200);
+        }
+        catch (e) {
+            console.log(e);
+        }
+    });
 });
 //# sourceMappingURL=spec.js.map

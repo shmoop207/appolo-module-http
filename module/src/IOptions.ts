@@ -31,6 +31,10 @@ export interface IConfig {
         username: string;
         password: string;
     };
+    authDigest?: {
+        username: string;
+        password: string;
+    };
     responseType?: "arraybuffer" | "blob" | "document" | "json" | "text" | "stream";
     xsrfCookieName?: string;
     xsrfHeaderName?: string;
