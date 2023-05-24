@@ -15,7 +15,7 @@ export class HttpService {
 
     @inject() private httpProvider: AxiosInstance;
     @inject() private moduleOptions: IOptions;
-    private count: number = 0;
+    private _count: number = 0;
 
     public async request<T>(options: IConfig): Promise<IHttpResponse<T>> {
 
@@ -83,12 +83,7 @@ export class HttpService {
 
             if (options.authDigest && !options.didCheckAuth && err.response && err.response.status == 401 && err.response.headers['www-authenticate']?.includes("nonce")) {
                 options.didCheckAuth = true;
-                const authorization = this._handleDigestAuth(options, err.response.headers['www-authenticate']);
-                if (options.headers) {
-                    options.headers['authorization'] = authorization;
-                } else {
-                    options.headers = {authorization: authorization};
-                }
+                options.headers['authorization'] = this._handleDigestAuth(options, err.response.headers['www-authenticate']);
                 return this._request(options);
             }
 
@@ -137,8 +132,8 @@ export class HttpService {
 
     private _handleDigestAuth(options: IConfigInner, authHeader: string): string {
         const authDetails = authHeader.split(',').map((v: string) => v.split('='));
-        ++this.count;
-        const nonceCount = ('00000000' + this.count).slice(-8);
+        ++this._count;
+        const nonceCount = ('00000000' + this._count).slice(-8);
         const cnonce = crypto.randomBytes(24).toString('hex');
         const realm = authDetails.find((el: any) => el[0].toLowerCase().indexOf("realm") > -1)[1].replace(/"/g, '');
         const nonce = authDetails.find((el: any) => el[0].toLowerCase().indexOf("nonce") > -1)[1].replace(/"/g, '');
