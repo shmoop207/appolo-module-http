@@ -10,7 +10,7 @@ const util_1 = require("./util");
 const zlib_1 = require("zlib");
 let HttpService = class HttpService {
     constructor() {
-        this.count = 0;
+        this._count = 0;
     }
     async request(options) {
         let dto = Object.assign(Object.assign({}, options), { retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay, currentRetryAttempt: 0, fallbackUrlIndex: 0, headers: options.headers || {} });
@@ -53,13 +53,7 @@ let HttpService = class HttpService {
             let err = e;
             if (options.authDigest && !options.didCheckAuth && err.response && err.response.status == 401 && ((_a = err.response.headers['www-authenticate']) === null || _a === void 0 ? void 0 : _a.includes("nonce"))) {
                 options.didCheckAuth = true;
-                const authorization = this._handleDigestAuth(options, err.response.headers['www-authenticate']);
-                if (options.headers) {
-                    options.headers['authorization'] = authorization;
-                }
-                else {
-                    options.headers = { authorization: authorization };
-                }
+                options.headers['authorization'] = this._handleDigestAuth(options, err.response.headers['www-authenticate']);
                 return this._request(options);
             }
             if (e.message == "promise timeout") {
@@ -93,8 +87,8 @@ let HttpService = class HttpService {
     _handleDigestAuth(options, authHeader) {
         var _a;
         const authDetails = authHeader.split(',').map((v) => v.split('='));
-        ++this.count;
-        const nonceCount = ('00000000' + this.count).slice(-8);
+        ++this._count;
+        const nonceCount = ('00000000' + this._count).slice(-8);
         const cnonce = crypto.randomBytes(24).toString('hex');
         const realm = authDetails.find((el) => el[0].toLowerCase().indexOf("realm") > -1)[1].replace(/"/g, '');
         const nonce = authDetails.find((el) => el[0].toLowerCase().indexOf("nonce") > -1)[1].replace(/"/g, '');
