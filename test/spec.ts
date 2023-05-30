@@ -171,5 +171,51 @@ describe("socket module Spec", function () {
 
     });
 
+    it('should get response with digest auth', async () => {
+
+        try {
+            let httpService = app.injector.get<HttpService>(HttpService);
+
+            let result = await httpService.request<{ id: number }>({
+                method: "GET",
+                headers:{
+                  Accept: "application/json"
+                },
+                url: "http://httpbin.org/digest-auth/auth/user/passwd/MD5",
+                authDigest: {
+                    username: "user",
+                    password: "passwd",
+                }
+            })
+
+            result.status.should.be.eq(200);
+
+        } catch (e) {
+            console.log(e)
+        }
+    });
+
+    it('should fail on 401 with digest auth', async () => {
+
+        try {
+            let httpService = app.injector.get<HttpService>(HttpService);
+
+            let result = await httpService.request<{ id: number }>({
+                method: "GET",
+                headers:{
+                    Accept: "application/json"
+                },
+                url: "http://httpbin.org/digest-auth/auth/user/passwd/MD5",
+                authDigest: {
+                    username: "user",
+                    password: "not_passwd",
+                }
+            })
+
+        } catch (e) {
+            e.response.status.should.be.eq(401);
+        }
+    });
+
 });
 

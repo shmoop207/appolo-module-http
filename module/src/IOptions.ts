@@ -31,6 +31,10 @@ export interface IConfig {
         username: string;
         password: string;
     };
+    authDigest?: {
+        username: string;
+        password: string;
+    };
     responseType?: "arraybuffer" | "blob" | "document" | "json" | "text" | "stream";
     xsrfCookieName?: string;
     xsrfHeaderName?: string;
@@ -62,6 +66,7 @@ export interface IHttpResponse<T = any> {
 
 export interface IConfigInner extends IConfig {
     currentRetryAttempt?: number,
-    fallbackUrlIndex?: number
+    fallbackUrlIndex?: number,
+    didCheckAuth?: boolean,
 }
 
