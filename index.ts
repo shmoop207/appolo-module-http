@@ -2,9 +2,9 @@
 import {HttpModule} from "./module/httpModule";
 import {HttpService} from "./module/src/httpService";
 import {ResponseError} from "./module/src/responseError";
-import {IConfig, IOptions, IHttpResponse} from "./module/src/IOptions";
+import {IConfig, IOptions, IHttpResponse, Method} from "./module/src/IOptions";
 
-export {HttpModule, HttpService, IOptions, ResponseError, IConfig, IHttpResponse}
+export {HttpModule, HttpService, IOptions, ResponseError, IConfig, IHttpResponse, Method}
 
 declare module 'axios' {
     interface AxiosRequestConfig {
