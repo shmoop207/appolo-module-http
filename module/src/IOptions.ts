@@ -1,4 +1,4 @@
-import {CancelToken} from "axios";
+import {CancelToken, GenericAbortSignal} from "axios";
 
 export interface IOptions extends IConfig {
     id?: string;
@@ -19,7 +19,7 @@ export type Method =
 
 export interface IConfig {
     url?: string;
-    method?: Method;
+    method?: Method | string;
     baseURL?: string;
     headers?: { [index: string]: any };
     params?: { [index: string]: any };
@@ -48,12 +48,11 @@ export interface IConfig {
     fallbackUrls?: string[];
     retryStatus?: number
     cancelToken?: CancelToken;
-    signal?: AbortSignal;
+    signal?: GenericAbortSignal;
     decompress?: boolean
     compressGzip?: boolean
     compressGzipMinSize?: number
 }
-
 
 export interface IHttpResponse<T = any> {
     data: T;
