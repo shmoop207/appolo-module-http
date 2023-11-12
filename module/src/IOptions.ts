@@ -51,7 +51,8 @@ export interface IConfig {
     signal?: GenericAbortSignal;
     decompress?: boolean
     compressGzip?: boolean
-    compressGzipMinSize?: number
+    compressGzipMinSize?: number,
+    family?: 4 | 6 | undefined
 }
 
 export interface IHttpResponse<T = any> {
