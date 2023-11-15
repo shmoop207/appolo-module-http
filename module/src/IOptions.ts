@@ -19,6 +19,8 @@ export type Method =
 
 export interface IConfig {
     url?: string;
+    useDnsCache?: boolean;
+    dnsCacheTtl?: number;
     method?: Method | string;
     baseURL?: string;
     headers?: { [index: string]: any };

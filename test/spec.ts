@@ -1,7 +1,12 @@
 import {App, createApp} from '@appolo/engine'
 import {HttpModule, HttpService, ResponseError} from '../'
+import sinonChai = require('sinon-chai');
+import chai = require('chai');
+import sinon = require('sinon');
+import {DnsCache} from "../module/src/dnsCache";
 
 let should = require('chai').should();
+chai.use(sinonChai);
 
 
 describe("socket module Spec", function () {
@@ -178,8 +183,8 @@ describe("socket module Spec", function () {
 
             let result = await httpService.request<{ id: number }>({
                 method: "GET",
-                headers:{
-                  Accept: "application/json"
+                headers: {
+                    Accept: "application/json"
                 },
                 url: "http://httpbin.org/digest-auth/auth/user/passwd/MD5",
                 authDigest: {
@@ -202,7 +207,7 @@ describe("socket module Spec", function () {
 
             let result = await httpService.request<{ id: number }>({
                 method: "GET",
-                headers:{
+                headers: {
                     Accept: "application/json"
                 },
                 url: "http://httpbin.org/digest-auth/auth/user/passwd/MD5",
@@ -215,6 +220,38 @@ describe("socket module Spec", function () {
         } catch (e) {
             e.response.status.should.be.eq(401);
         }
+    });
+
+    it('should use dns cache', async () => {
+
+        let httpService = app.injector.get<HttpService>(HttpService);
+        let dnsCache = app.module.moduleAt(0).app.injector.get<DnsCache>(DnsCache);
+
+        // @ts-ignore
+        let spy  = sinon.spy(dnsCache, "_refreshHostNameIps")
+
+        let result = await httpService.request<{ id: number }>({
+            method: "get",
+            useDnsCache: true,
+            url: "https://google.com"
+        })
+
+        result.status.should.be.eq(200);
+
+        result.config.url.should.not.contain("google.com");
+        result.config.headers.Host.should.contain("google.com");
+
+        spy.should.have.been.calledOnce;
+
+        let result2 = await httpService.request<{ id: number }>({
+            method: "get",
+            useDnsCache: true,
+            url: "http://google.com"
+        })
+
+        spy.should.have.callCount(1)
+
+
     });
 
 });

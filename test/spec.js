@@ -2,7 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const engine_1 = require("@appolo/engine");
 const __1 = require("../");
+const sinonChai = require("sinon-chai");
+const chai = require("chai");
+const sinon = require("sinon");
+const dnsCache_1 = require("../module/src/dnsCache");
 let should = require('chai').should();
+chai.use(sinonChai);
 describe("socket module Spec", function () {
     let app;
     beforeEach(async () => {
@@ -151,6 +156,27 @@ describe("socket module Spec", function () {
         catch (e) {
             e.response.status.should.be.eq(401);
         }
+    });
+    it('should use dns cache', async () => {
+        let httpService = app.injector.get(__1.HttpService);
+        let dnsCache = app.module.moduleAt(0).app.injector.get(dnsCache_1.DnsCache);
+        // @ts-ignore
+        let spy = sinon.spy(dnsCache, "_refreshHostNameIps");
+        let result = await httpService.request({
+            method: "get",
+            useDnsCache: true,
+            url: "https://google.com"
+        });
+        result.status.should.be.eq(200);
+        result.config.url.should.not.contain("google.com");
+        result.config.headers.Host.should.contain("google.com");
+        spy.should.have.been.calledOnce;
+        let result2 = await httpService.request({
+            method: "get",
+            useDnsCache: true,
+            url: "http://google.com"
+        });
+        spy.should.have.callCount(1);
     });
 });
 //# sourceMappingURL=spec.js.map

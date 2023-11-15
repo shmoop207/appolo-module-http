@@ -7,6 +7,8 @@ import {ResponseError} from "./responseError";
 import {Promises, Strings} from "@appolo/utils";
 import {Util} from "./util";
 import {gzip} from "zlib";
+import {createDigestAuth} from "./digestAuth";
+import {DnsCache} from "./dnsCache";
 
 
 @define()
@@ -15,7 +17,7 @@ export class HttpService {
 
     @inject() private httpProvider: AxiosInstance;
     @inject() private moduleOptions: IOptions;
-    private _count: number = 0;
+    @inject() private dnsCache: DnsCache;
 
     public async request<T>(options: IConfig): Promise<IHttpResponse<T>> {
 
@@ -30,6 +32,17 @@ export class HttpService {
 
         await this._handleGzip(dto);
 
+        this._handleBaseUrl(options, dto);
+
+        if (options.useDnsCache) {
+            await this.dnsCache.replaceHostName(dto);
+        }
+
+        return this._request<T>(dto);
+
+    }
+
+    private _handleBaseUrl(options: IConfig, dto: IConfigInner) {
         if (options.baseURL) {
 
             dto.url = Util.combineURLs(options.baseURL, options.url)
@@ -40,9 +53,6 @@ export class HttpService {
 
             delete dto.baseURL;
         }
-
-        return this._request<T>(dto);
-
     }
 
     private async _handleGzip(options: IConfigInner) {
@@ -83,7 +93,7 @@ export class HttpService {
 
             if (options.authDigest && !options.didCheckAuth && err.response && err.response.status == 401 && err.response.headers['www-authenticate']?.includes("nonce")) {
                 options.didCheckAuth = true;
-                options.headers['authorization'] = this._handleDigestAuth(options, err.response.headers['www-authenticate']);
+                options.headers['authorization'] = createDigestAuth(options, err.response.headers['www-authenticate']);
                 return this._request(options);
             }
 
@@ -130,22 +140,6 @@ export class HttpService {
         })
     }
 
-    private _handleDigestAuth(options: IConfigInner, authHeader: string): string {
-        const authDetails = authHeader.split(',').map((v: string) => v.split('='));
-        ++this._count;
-        const nonceCount = ('00000000' + this._count).slice(-8);
-        const cnonce = crypto.randomBytes(24).toString('hex');
-        const realm = authDetails.find((el: any) => el[0].toLowerCase().indexOf("realm") > -1)[1].replace(/"/g, '');
-        const nonce = authDetails.find((el: any) => el[0].toLowerCase().indexOf("nonce") > -1)[1].replace(/"/g, '');
-        const ha1 = crypto.createHash('md5').update(`${options.authDigest.username}:${realm}:${options.authDigest.password}`).digest('hex');
-        const url = new URL(options.url);
-        const ha2 = crypto.createHash('md5').update(`${options.method ?? 'GET'}:${url.pathname}`).digest('hex');
-        const response = crypto.createHash('md5').update(`${ha1}:${nonce}:${nonceCount}:${cnonce}:auth:${ha2}`).digest('hex');
-        const authorization = `Digest username="${options.authDigest.username}",realm="${realm}",` +
-            `nonce="${nonce}",uri="${url.pathname}",qop="auth",algorithm="MD5",` +
-            `response="${response}",nc="${nonceCount}",cnonce="${cnonce}"`;
-        return authorization;
-    }
 }
 
 

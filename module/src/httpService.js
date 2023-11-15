@@ -3,18 +3,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpService = void 0;
 const tslib_1 = require("tslib");
 const inject_1 = require("@appolo/inject");
-const crypto = require("crypto");
 const responseError_1 = require("./responseError");
 const utils_1 = require("@appolo/utils");
 const util_1 = require("./util");
 const zlib_1 = require("zlib");
+const digestAuth_1 = require("./digestAuth");
 let HttpService = class HttpService {
-    constructor() {
-        this._count = 0;
-    }
     async request(options) {
         let dto = Object.assign(Object.assign({}, options), { retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay, currentRetryAttempt: 0, fallbackUrlIndex: 0, headers: options.headers || {} });
         await this._handleGzip(dto);
+        this._handleBaseUrl(options, dto);
+        if (options.useDnsCache) {
+            await this.dnsCache.replaceHostName(dto);
+        }
+        return this._request(dto);
+    }
+    _handleBaseUrl(options, dto) {
         if (options.baseURL) {
             dto.url = util_1.Util.combineURLs(options.baseURL, options.url);
             if (options.fallbackUrls) {
@@ -22,7 +26,6 @@ let HttpService = class HttpService {
             }
             delete dto.baseURL;
         }
-        return this._request(dto);
     }
     async _handleGzip(options) {
         if (!options.compressGzip) {
@@ -53,7 +56,7 @@ let HttpService = class HttpService {
             let err = e;
             if (options.authDigest && !options.didCheckAuth && err.response && err.response.status == 401 && ((_a = err.response.headers['www-authenticate']) === null || _a === void 0 ? void 0 : _a.includes("nonce"))) {
                 options.didCheckAuth = true;
-                options.headers['authorization'] = this._handleDigestAuth(options, err.response.headers['www-authenticate']);
+                options.headers['authorization'] = (0, digestAuth_1.createDigestAuth)(options, err.response.headers['www-authenticate']);
                 return this._request(options);
             }
             if (e.message == "promise timeout") {
@@ -84,23 +87,6 @@ let HttpService = class HttpService {
         this.request(options).catch(() => {
         });
     }
-    _handleDigestAuth(options, authHeader) {
-        var _a;
-        const authDetails = authHeader.split(',').map((v) => v.split('='));
-        ++this._count;
-        const nonceCount = ('00000000' + this._count).slice(-8);
-        const cnonce = crypto.randomBytes(24).toString('hex');
-        const realm = authDetails.find((el) => el[0].toLowerCase().indexOf("realm") > -1)[1].replace(/"/g, '');
-        const nonce = authDetails.find((el) => el[0].toLowerCase().indexOf("nonce") > -1)[1].replace(/"/g, '');
-        const ha1 = crypto.createHash('md5').update(`${options.authDigest.username}:${realm}:${options.authDigest.password}`).digest('hex');
-        const url = new URL(options.url);
-        const ha2 = crypto.createHash('md5').update(`${(_a = options.method) !== null && _a !== void 0 ? _a : 'GET'}:${url.pathname}`).digest('hex');
-        const response = crypto.createHash('md5').update(`${ha1}:${nonce}:${nonceCount}:${cnonce}:auth:${ha2}`).digest('hex');
-        const authorization = `Digest username="${options.authDigest.username}",realm="${realm}",` +
-            `nonce="${nonce}",uri="${url.pathname}",qop="auth",algorithm="MD5",` +
-            `response="${response}",nc="${nonceCount}",cnonce="${cnonce}"`;
-        return authorization;
-    }
 };
 tslib_1.__decorate([
     (0, inject_1.inject)()
@@ -108,6 +94,9 @@ tslib_1.__decorate([
 tslib_1.__decorate([
     (0, inject_1.inject)()
 ], HttpService.prototype, "moduleOptions", void 0);
+tslib_1.__decorate([
+    (0, inject_1.inject)()
+], HttpService.prototype, "dnsCache", void 0);
 HttpService = tslib_1.__decorate([
     (0, inject_1.define)(),
     (0, inject_1.singleton)()
