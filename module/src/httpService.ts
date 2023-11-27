@@ -1,6 +1,5 @@
 import {define, inject, singleton} from '@appolo/inject';
-import axios, {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
-import * as crypto from "crypto";
+import {AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios'
 import {IConfig, IOptions, IHttpResponse, IConfigInner} from "./IOptions";
 import {ResponseError} from "./responseError";
 
@@ -8,7 +7,7 @@ import {Promises, Strings} from "@appolo/utils";
 import {Util} from "./util";
 import {gzip} from "zlib";
 import {createDigestAuth} from "./digestAuth";
-import {DnsCache} from "./dnsCache";
+import {AddressFamily, CacheableLookup, LookupAddressEntry} from "./cacheableLookup";
 
 
 @define()
@@ -17,7 +16,7 @@ export class HttpService {
 
     @inject() private httpProvider: AxiosInstance;
     @inject() private moduleOptions: IOptions;
-    @inject() private dnsCache: DnsCache;
+    @inject() private cacheableLookup: CacheableLookup;
 
     public async request<T>(options: IConfig): Promise<IHttpResponse<T>> {
 
@@ -34,8 +33,8 @@ export class HttpService {
 
         this._handleBaseUrl(options, dto);
 
-        if (options.useDnsCache) {
-            await this.dnsCache.replaceHostName(dto);
+        if (options.useDnsCache && !dto.lookup) {
+            dto.lookup = ((hostname: string, options: object, cb: (err: Error | null, address: LookupAddressEntry | LookupAddressEntry[],family?: AddressFamily) => void) => this.cacheableLookup.lookup(hostname, options, cb))
         }
 
         return this._request<T>(dto);
@@ -77,6 +76,7 @@ export class HttpService {
 
 
         options.data = await Promises.fromCallback(c => gzip(data, c));
+
     }
 
     private async _request<T>(options: IConfigInner): Promise<IHttpResponse<T>> {

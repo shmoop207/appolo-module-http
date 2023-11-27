@@ -3,7 +3,7 @@ import {HttpModule, HttpService, ResponseError} from '../'
 import sinonChai = require('sinon-chai');
 import chai = require('chai');
 import sinon = require('sinon');
-import {DnsCache} from "../module/src/dnsCache";
+import {CacheableLookup} from "../module/src/cacheableLookup";
 
 let should = require('chai').should();
 chai.use(sinonChai);
@@ -17,7 +17,7 @@ describe("socket module Spec", function () {
 
         app = createApp({root: __dirname, environment: "production"});
 
-        await app.module.use(HttpModule.for({
+         app.module.use(HttpModule.for({
 
             retry: 2, retryDelay: 100,
 
@@ -225,30 +225,27 @@ describe("socket module Spec", function () {
     it('should use dns cache', async () => {
 
         let httpService = app.injector.get<HttpService>(HttpService);
-        let dnsCache = app.module.moduleAt(0).app.injector.get<DnsCache>(DnsCache);
+        let cacheableLookup = app.module.moduleAt(0).app.injector.get<CacheableLookup>(CacheableLookup);
 
         // @ts-ignore
-        let spy  = sinon.spy(dnsCache, "_refreshHostNameIps")
+        let spy  = sinon.spy(cacheableLookup, "_lookupAsync")
 
         let result = await httpService.request<{ id: number }>({
             method: "get",
-            useDnsCache: true,
-            url: "https://google.com"
+            useDnsCache: true,family:4,
+            url: "http://www.bing.com"
         })
 
         result.status.should.be.eq(200);
-
-        result.config.url.should.not.contain("google.com");
-        result.config.headers.Host.should.contain("google.com");
 
         spy.should.have.been.calledOnce;
 
         let result2 = await httpService.request<{ id: number }>({
             method: "get",
-            useDnsCache: true,
-            url: "http://google.com"
+            useDnsCache: true,family:4,
+            url: "http://www.bing.com"
         })
-
+        result2.status.should.be.eq(200);
         spy.should.have.callCount(1)
 
 

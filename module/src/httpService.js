@@ -13,8 +13,8 @@ let HttpService = class HttpService {
         let dto = Object.assign(Object.assign({}, options), { retry: options.retry !== undefined ? options.retry : this.moduleOptions.retry, retryDelay: options.retryDelay || this.moduleOptions.retryDelay, currentRetryAttempt: 0, fallbackUrlIndex: 0, headers: options.headers || {} });
         await this._handleGzip(dto);
         this._handleBaseUrl(options, dto);
-        if (options.useDnsCache) {
-            await this.dnsCache.replaceHostName(dto);
+        if (options.useDnsCache && !dto.lookup) {
+            dto.lookup = ((hostname, options, cb) => this.cacheableLookup.lookup(hostname, options, cb));
         }
         return this._request(dto);
     }
@@ -96,7 +96,7 @@ tslib_1.__decorate([
 ], HttpService.prototype, "moduleOptions", void 0);
 tslib_1.__decorate([
     (0, inject_1.inject)()
-], HttpService.prototype, "dnsCache", void 0);
+], HttpService.prototype, "cacheableLookup", void 0);
 HttpService = tslib_1.__decorate([
     (0, inject_1.define)(),
     (0, inject_1.singleton)()

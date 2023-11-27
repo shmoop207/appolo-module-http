@@ -1,4 +1,4 @@
-import {CancelToken, GenericAbortSignal} from "axios";
+import {AddressFamily, CancelToken, GenericAbortSignal, LookupAddress, LookupAddressEntry} from "axios";
 
 export interface IOptions extends IConfig {
     id?: string;
@@ -55,6 +55,9 @@ export interface IConfig {
     compressGzip?: boolean
     compressGzipMinSize?: number,
     family?: 4 | 6 | undefined
+    lookup?: ((hostname: string, options: object, cb: (err: Error | null, address: LookupAddress | LookupAddress[], family?: AddressFamily) => void) => void) |
+        ((hostname: string, options: object) => Promise<[address: LookupAddressEntry | LookupAddressEntry[], family?: AddressFamily] | LookupAddress>);
+
 }
 
 export interface IHttpResponse<T = any> {

@@ -5,14 +5,14 @@ const __1 = require("../");
 const sinonChai = require("sinon-chai");
 const chai = require("chai");
 const sinon = require("sinon");
-const dnsCache_1 = require("../module/src/dnsCache");
+const cacheableLookup_1 = require("../module/src/cacheableLookup");
 let should = require('chai').should();
 chai.use(sinonChai);
 describe("socket module Spec", function () {
     let app;
     beforeEach(async () => {
         app = (0, engine_1.createApp)({ root: __dirname, environment: "production" });
-        await app.module.use(__1.HttpModule.for({
+        app.module.use(__1.HttpModule.for({
             retry: 2, retryDelay: 100,
         }));
         await app.launch();
@@ -159,23 +159,22 @@ describe("socket module Spec", function () {
     });
     it('should use dns cache', async () => {
         let httpService = app.injector.get(__1.HttpService);
-        let dnsCache = app.module.moduleAt(0).app.injector.get(dnsCache_1.DnsCache);
+        let cacheableLookup = app.module.moduleAt(0).app.injector.get(cacheableLookup_1.CacheableLookup);
         // @ts-ignore
-        let spy = sinon.spy(dnsCache, "_refreshHostNameIps");
+        let spy = sinon.spy(cacheableLookup, "_lookupAsync");
         let result = await httpService.request({
             method: "get",
-            useDnsCache: true,
-            url: "https://google.com"
+            useDnsCache: true, family: 4,
+            url: "http://www.bing.com"
         });
         result.status.should.be.eq(200);
-        result.config.url.should.not.contain("google.com");
-        result.config.headers.Host.should.contain("google.com");
         spy.should.have.been.calledOnce;
         let result2 = await httpService.request({
             method: "get",
-            useDnsCache: true,
-            url: "http://google.com"
+            useDnsCache: true, family: 4,
+            url: "http://www.bing.com"
         });
+        result2.status.should.be.eq(200);
         spy.should.have.callCount(1);
     });
 });
