@@ -2,8 +2,6 @@ import {define, factory, IFactory, inject, singleton, init} from '@appolo/inject
 import {Cache} from 'appolo-cache';
 import {IConfigInner, IOptions} from "./IOptions";
 import * as dns from 'dns/promises'
-import {Promises, Arrays} from '@appolo/utils'
-import {LookupAddress, RecordWithTtl} from "node:dns";
 import {ADDRCONFIG, ALL, V4MAPPED} from "node:dns";
 import * as os from "node:os";
 
