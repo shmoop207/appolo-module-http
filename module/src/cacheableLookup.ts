@@ -121,7 +121,10 @@ export class CacheableLookup {
 
             if (options.hints & V4MAPPED) {
                 if ((typeof ALL === 'number' && options.hints & ALL) || filtered.length === 0) {
-                    addresses.map(entry => entry.family === 6 ? entry : {address: `::ffff:${entry.address}`, family: 6})
+                    addresses = addresses.map(entry => entry.family === 6 ? entry : {
+                        address: `::ffff:${entry.address}`,
+                        family: 6
+                    })
                 } else {
                     addresses = filtered;
                 }
@@ -140,7 +143,7 @@ export class CacheableLookup {
             const error: any = new Error(`cacheableLookup ENOTFOUND ${hostname}`);
             error.code = 'ENOTFOUND';
             error.hostname = hostname;
-            callback(error);
+            callback(error, []);
             return;
         }
 
@@ -220,6 +223,11 @@ export class CacheableLookup {
         for (let i = 0; i < addresses.length; i++) {
 
             let entry = addresses[i];
+
+            if (!entry.address || typeof entry.address !== "string") {
+                continue;
+            }
+
             let record: LookupAddressEntry = {family: family, address: entry.address};
             output.push(record);
             ttl = Math.max(ttl, entry.ttl || 0);

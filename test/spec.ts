@@ -4,6 +4,8 @@ import sinonChai = require('sinon-chai');
 import chai = require('chai');
 import sinon = require('sinon');
 import {CacheableLookup} from "../module/src/cacheableLookup";
+import {Promises} from "@appolo/utils";
+import * as CacheableLookup2 from 'cacheable-lookup';
 
 let should = require('chai').should();
 chai.use(sinonChai);
@@ -17,7 +19,7 @@ describe("socket module Spec", function () {
 
         app = createApp({root: __dirname, environment: "production"});
 
-         app.module.use(HttpModule.for({
+        app.module.use(HttpModule.for({
 
             retry: 2, retryDelay: 100,
 
@@ -228,11 +230,11 @@ describe("socket module Spec", function () {
         let cacheableLookup = app.module.moduleAt(0).app.injector.get<CacheableLookup>(CacheableLookup);
 
         // @ts-ignore
-        let spy  = sinon.spy(cacheableLookup, "_lookupAsync")
+        let spy = sinon.spy(cacheableLookup, "_lookupAsync")
 
         let result = await httpService.request<{ id: number }>({
             method: "get",
-            useDnsCache: true,family:4,
+            useDnsCache: true, family: 4,
             url: "http://www.bing.com"
         })
 
@@ -242,11 +244,28 @@ describe("socket module Spec", function () {
 
         let result2 = await httpService.request<{ id: number }>({
             method: "get",
-            useDnsCache: true,family:4,
+            useDnsCache: true, family: 4,
             url: "http://www.bing.com"
         })
         result2.status.should.be.eq(200);
         spy.should.have.callCount(1)
+
+    });
+
+    it('should use dns cache throw error', async () => {
+
+        let httpService = app.injector.get<HttpService>(HttpService);
+        try {
+
+            await httpService.request<{ id: number }>({
+                method: "post",
+                useDnsCache: true,
+                url: "https://aaa.bb.cc"
+            })
+        } catch (e) {
+            e.message.should.contain("ENOTFOUND");
+        }
+
 
 
     });

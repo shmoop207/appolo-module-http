@@ -63,7 +63,10 @@ let CacheableLookup = class CacheableLookup {
             const filtered = addresses.filter(entry => entry.family === 6);
             if (options.hints & node_dns_1.V4MAPPED) {
                 if ((typeof node_dns_1.ALL === 'number' && options.hints & node_dns_1.ALL) || filtered.length === 0) {
-                    addresses.map(entry => entry.family === 6 ? entry : { address: `::ffff:${entry.address}`, family: 6 });
+                    addresses = addresses.map(entry => entry.family === 6 ? entry : {
+                        address: `::ffff:${entry.address}`,
+                        family: 6
+                    });
                 }
                 else {
                     addresses = filtered;
@@ -83,7 +86,7 @@ let CacheableLookup = class CacheableLookup {
             const error = new Error(`cacheableLookup ENOTFOUND ${hostname}`);
             error.code = 'ENOTFOUND';
             error.hostname = hostname;
-            callback(error);
+            callback(error, []);
             return;
         }
         if (options.all) {
@@ -139,6 +142,9 @@ let CacheableLookup = class CacheableLookup {
         let output = [], ttl = 0;
         for (let i = 0; i < addresses.length; i++) {
             let entry = addresses[i];
+            if (!entry.address || typeof entry.address !== "string") {
+                continue;
+            }
             let record = { family: family, address: entry.address };
             output.push(record);
             ttl = Math.max(ttl, entry.ttl || 0);

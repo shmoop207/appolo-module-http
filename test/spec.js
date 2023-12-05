@@ -177,5 +177,18 @@ describe("socket module Spec", function () {
         result2.status.should.be.eq(200);
         spy.should.have.callCount(1);
     });
+    it('should use dns cache throw error', async () => {
+        let httpService = app.injector.get(__1.HttpService);
+        try {
+            await httpService.request({
+                method: "post",
+                useDnsCache: true,
+                url: "https://aaa.bb.cc"
+            });
+        }
+        catch (e) {
+            e.message.should.contain("ENOTFOUND");
+        }
+    });
 });
 //# sourceMappingURL=spec.js.map
