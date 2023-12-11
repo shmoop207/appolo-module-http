@@ -5,7 +5,6 @@ import chai = require('chai');
 import sinon = require('sinon');
 import {CacheableLookup} from "../module/src/cacheableLookup";
 import {Promises} from "@appolo/utils";
-import * as CacheableLookup2 from 'cacheable-lookup';
 
 let should = require('chai').should();
 chai.use(sinonChai);

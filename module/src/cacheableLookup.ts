@@ -70,7 +70,7 @@ export class CacheableLookup {
         if (!cacheResult) {
             this._lookupAsync(params)
                 .then(entries => this._prepareAddresses(params, entries, callback))
-                .catch(e => callback(e))
+                .catch(e => this._prepareAddresses(params, [], callback, e))
 
             return;
         }
@@ -112,9 +112,13 @@ export class CacheableLookup {
         }
     }
 
-    private _prepareAddresses(params: LookupParams, addresses: LookupAddressEntry[], callback: Callback) {
+    private _prepareAddresses(params: LookupParams, addresses: LookupAddressEntry[], callback: Callback, e?: NodeJS.ErrnoException) {
 
         let {options, hostname} = params;
+        if (e) {
+            callback(this.createError({hostname: hostname, code: e.code}), []);
+            return;
+        }
 
         if (options.family === 6) {
             const filtered = addresses.filter(entry => entry.family === 6);
@@ -140,10 +144,7 @@ export class CacheableLookup {
         }
 
         if (addresses.length === 0) {
-            const error: any = new Error(`cacheableLookup ENOTFOUND ${hostname}`);
-            error.code = 'ENOTFOUND';
-            error.hostname = hostname;
-            callback(error, []);
+            callback(this.createError({hostname: hostname, code: "ENOTFOUND"}), []);
             return;
         }
 
@@ -155,6 +156,15 @@ export class CacheableLookup {
         }
 
 
+    }
+
+    private createError(params: { hostname: string, code: string }) {
+        let code = params.code || "ENOTFOUND";
+        const error: any = new Error(`cacheableLookup ${code} ${params.hostname}`);
+        error.code = code;
+        error.hostname = params.hostname;
+
+        return error
     }
 
     private async _lookup(params: LookupParams): Promise<LookupResult> {

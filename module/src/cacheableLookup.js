@@ -26,7 +26,7 @@ let CacheableLookup = class CacheableLookup {
         if (!cacheResult) {
             this._lookupAsync(params)
                 .then(entries => this._prepareAddresses(params, entries, callback))
-                .catch(e => callback(e));
+                .catch(e => this._prepareAddresses(params, [], callback, e));
             return;
         }
         if (!cacheResult.validExpire) {
@@ -57,8 +57,12 @@ let CacheableLookup = class CacheableLookup {
             this._pendding.delete(params.key);
         }
     }
-    _prepareAddresses(params, addresses, callback) {
+    _prepareAddresses(params, addresses, callback, e) {
         let { options, hostname } = params;
+        if (e) {
+            callback(this.createError({ hostname: hostname, code: e.code }), []);
+            return;
+        }
         if (options.family === 6) {
             const filtered = addresses.filter(entry => entry.family === 6);
             if (options.hints & node_dns_1.V4MAPPED) {
@@ -83,10 +87,7 @@ let CacheableLookup = class CacheableLookup {
             addresses = addresses.filter(entry => entry.family === 6 ? this._iface.has6 : this._iface.has4);
         }
         if (addresses.length === 0) {
-            const error = new Error(`cacheableLookup ENOTFOUND ${hostname}`);
-            error.code = 'ENOTFOUND';
-            error.hostname = hostname;
-            callback(error, []);
+            callback(this.createError({ hostname: hostname, code: "ENOTFOUND" }), []);
             return;
         }
         if (options.all) {
@@ -96,6 +97,13 @@ let CacheableLookup = class CacheableLookup {
             let address = addresses[0];
             return callback(null, address, address.family);
         }
+    }
+    createError(params) {
+        let code = params.code || "ENOTFOUND";
+        const error = new Error(`cacheableLookup ${code} ${params.hostname}`);
+        error.code = code;
+        error.hostname = params.hostname;
+        return error;
     }
     async _lookup(params) {
         let promises = [];
