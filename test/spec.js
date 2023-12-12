@@ -164,7 +164,7 @@ describe("socket module Spec", function () {
         let spy = sinon.spy(cacheableLookup, "_lookupAsync");
         let result = await httpService.request({
             method: "get",
-            useDnsCache: true, family: 4,
+            useDnsCache: true,
             url: "http://www.bing.com"
         });
         result.status.should.be.eq(200);

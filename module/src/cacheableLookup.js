@@ -7,15 +7,22 @@ const appolo_cache_1 = require("appolo-cache");
 const dns = require("dns/promises");
 const node_dns_1 = require("node:dns");
 const os = require("node:os");
+const utils_1 = require("@appolo/utils");
 let CacheableLookup = class CacheableLookup {
     constructor() {
-        this.DefaultTtl = 1000 * 60;
-        this.DefaultErrorTtl = 1000 * 15;
-        this._resolver = new dns.Resolver();
         this._pendding = new Map();
+        this._defaults = {
+            cacheTtl: 1000 * 60,
+            cacheErrorTtl: 1000 * 5,
+            lookUpRetries: 3,
+            lookUpTimeout: 5 * 1000,
+            maxItems: 100000
+        };
     }
     init() {
-        this._cache = new appolo_cache_1.Cache({ maxSize: 100000, maxAge: this.moduleOptions.dnsCacheTtl || this.DefaultTtl });
+        this._defaults = Object.assign(this._defaults, this.moduleOptions.dnsCacheOptions || {});
+        this._resolver = new dns.Resolver({ timeout: this._defaults.lookUpTimeout, tries: this._defaults.lookUpRetries });
+        this._cache = new appolo_cache_1.Cache({ maxSize: this._defaults.maxItems, maxAge: this._defaults.cacheTtl });
         this._iface = this._getIfaceInfo();
     }
     lookup(hostname, options, callback) {
@@ -49,7 +56,7 @@ let CacheableLookup = class CacheableLookup {
             if (result.entries.length === 0) {
                 result = await this._lookup(params);
             }
-            const cacheTtl = result.entries.length === 0 ? this.DefaultErrorTtl : result.ttl;
+            const cacheTtl = result.entries.length === 0 ? this._defaults.cacheErrorTtl : result.ttl;
             this._cache.set(params.key, result.entries, cacheTtl);
             return result.entries;
         }
@@ -60,7 +67,7 @@ let CacheableLookup = class CacheableLookup {
     _prepareAddresses(params, addresses, callback, e) {
         let { options, hostname } = params;
         if (e) {
-            callback(this.createError({ hostname: hostname, code: e.code }), []);
+            this._callCallback(callback, this.createError({ hostname: hostname, code: e.code }), [], options.all);
             return;
         }
         if (options.family === 6) {
@@ -87,15 +94,18 @@ let CacheableLookup = class CacheableLookup {
             addresses = addresses.filter(entry => entry.family === 6 ? this._iface.has6 : this._iface.has4);
         }
         if (addresses.length === 0) {
-            callback(this.createError({ hostname: hostname, code: "ENOTFOUND" }), []);
+            this._callCallback(callback, this.createError({ hostname: hostname, code: "ENOTFOUND" }), [], options.all);
             return;
         }
-        if (options.all) {
-            callback(null, addresses);
+        this._callCallback(callback, null, addresses, options.all);
+    }
+    _callCallback(callback, error, addresses, all) {
+        if (all) {
+            callback(error, addresses);
         }
         else {
-            let address = addresses[0];
-            return callback(null, address, address.family);
+            let address = addresses.length ? utils_1.Arrays.random(addresses) : { address: "", family: 4 };
+            callback(error, address, address.family);
         }
     }
     createError(params) {
@@ -123,7 +133,7 @@ let CacheableLookup = class CacheableLookup {
             let result = results[i];
             entries.push(...result.entries);
         }
-        return { entries, ttl: this.moduleOptions.dnsCacheTtl || this.DefaultTtl };
+        return { entries, ttl: this._defaults.cacheTtl };
     }
     async _resolve(params) {
         let promises = [];
@@ -144,7 +154,7 @@ let CacheableLookup = class CacheableLookup {
             ttl = ttl ? ((result.ttl > 0) ? Math.min(result.ttl, ttl) : ttl) : result.ttl;
             entries.push(...result.entries);
         }
-        return { entries, ttl: ttl * 1000 };
+        return { entries, ttl: (ttl * 1000) || this._defaults.cacheTtl };
     }
     _convertToLookupAddressEntry(addresses, family) {
         let output = [], ttl = 0;

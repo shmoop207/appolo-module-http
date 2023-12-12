@@ -20,7 +20,14 @@ export type Method =
 export interface IConfig {
     url?: string;
     useDnsCache?: boolean;
-    dnsCacheTtl?: number;
+    dnsCacheOptions?: {
+        cacheTtl?: number;
+        cacheErrorTtl?: number;
+        lookUpRetries?: number;
+        lookUpTimeout?: number;
+        maxItems?: number
+
+    },
     method?: Method | string;
     baseURL?: string;
     headers?: { [index: string]: any };

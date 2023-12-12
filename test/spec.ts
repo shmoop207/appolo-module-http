@@ -233,7 +233,7 @@ describe("socket module Spec", function () {
 
         let result = await httpService.request<{ id: number }>({
             method: "get",
-            useDnsCache: true, family: 4,
+            useDnsCache: true,
             url: "http://www.bing.com"
         })
 
