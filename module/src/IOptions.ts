@@ -44,7 +44,7 @@ export interface IConfig {
         username: string;
         password: string;
     };
-    responseType?: "arraybuffer" | "blob" | "document" | "json" | "text" | "stream";
+    responseType?: | 'arraybuffer' | 'blob' | 'document' | 'json' | 'text' | 'stream' | 'formdata';
     xsrfCookieName?: string;
     xsrfHeaderName?: string;
     maxContentLength?: number;

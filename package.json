@@ -1,6 +1,6 @@
 {
   "name": "@appolo/http",
-  "version": "8.1.9",
+  "version": "8.1.10",
   "description": "appolo http module",
   "keywords": [
     "appolo",
@@ -14,11 +14,11 @@
     "@appolo/engine": "^8.0.19",
     "@appolo/utils": "^8.0.5",
     "appolo-cache": "^8.0.0",
-    "axios": "^1.6.2"
+    "axios": "^1.7.2"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.10",
-    "@types/mocha": "^10.0.4",
+    "@types/chai": "^4.3.16",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^20.9.0",
     "@types/sinon": "^17.0.1",
     "@types/sinon-chai": "^3.2.12",
